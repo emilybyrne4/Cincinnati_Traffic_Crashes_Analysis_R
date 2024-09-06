@@ -1,0 +1,103 @@
+---
+title: "Final Project"
+author: "Emily Byrne"
+date: "2023-03-08"
+output: html_document
+---
+
+# Final Project {.tabset}
+
+## Packages {.tabset}
+```{r}
+library(tidyverse)
+library(ggmap)
+ggmap::register_google(key = "AIzaSyB2dXu4azkdzKjFg8Tskk5NFPurFc2__r0")
+```
+
+## Dataset {.tabset}
+
+Cincinnati Traffic Crash Reports
+
+source: https://data.cincinnati-oh.gov/safety/Traffic-Crash-Reports-CPD-/rvmt-pkmq
+
+```{r}
+crashes = read_csv("Traffic_Crash_Reports__CPD_.csv")
+head(crashes)
+```
+
+## Descripton of Data Set {.tabset}
+
+### Dimensions and Missing Values {.tabset}
+
+Dimensions 
+```{r}
+dim(crashes)
+```
+Total Missing Values 
+```{r}
+sum(is.na(crashes))
+colSums(is.na(crashes))
+```
+
+## Visualizations {.tabset}
+
+#### Question 1 {.tabset}
+
+What is the distribution of level 1 severity car crashes in Cincinnati?
+
+```{r}
+# get roadmap of Cincinnati area 
+cincinnati = get_map(location = "Cincinnati",
+                     zoom = 12,
+                     source = "google",
+                     maptype = "roadmap")
+
+#create heat map of crashes on top of Cincinnati map 
+ggmap(cincinnati) +
+  geom_point(data = crashes %>% 
+               filter(CRASHSEVERITY == "1 - FATAL"),
+             aes(x = LONGITUDE_X, y = LATITUDE_X)) +
+  geom_density2d(data = crashes %>% 
+               filter(CRASHSEVERITY == "1 - FATAL"),
+             aes(x = LONGITUDE_X, y = LATITUDE_X),
+             color = "purple") +
+  geom_density2d_filled(data = crashes %>% 
+               filter(CRASHSEVERITY == "1 - FATAL"),
+             aes(x = LONGITUDE_X, y = LATITUDE_X),
+             alpha = 0.4) +
+  labs(title = "Distribution of Level 1 Severity Crashes in Cincinnati",
+       x = "Longitude", 
+       y = "Latitude",
+       fill = "Number of Crashes")
+```
+- East Central Parkway
+- East 5th & East 6th Street 
+- Riverbend Concert Venue 
+- Ault Park 
+
+#### Question 2 {.tabset}
+
+Which day of the week has experienced the most crashes when the light condition was considered dark? 
+
+```{r}
+# Convert light conditions to factor
+crashes$LIGHTCONDITIONSPRIMARY <- factor(crashes$LIGHTCONDITIONSPRIMARY)
+
+# Filter data for "dark" light conditions 
+dark_crashes <- subset(crashes, LIGHTCONDITIONSPRIMARY %in% c("3 - DARK - LIGHTED ROADWAY", "4 - DARK – ROADWAY NOT LIGHTED", "5 - DARK – UNKNOWN ROADWAY LIGHTING"))
+
+# Convert day of week to factor
+dark_crashes$DAYOFWEEK <- factor(dark_crashes$DAYOFWEEK)
+
+# Create a bar plot with facet_wrap
+ggplot(dark_crashes, aes(x = LIGHTCONDITIONSPRIMARY, fill = LIGHTCONDITIONSPRIMARY)) +
+  geom_bar(width = 0.6) +
+  labs(title = "Number of Crashes by Light Conditions",
+       x = "Light Conditions",
+       y = "Number of Crashes",
+       fill = "Light Conditions") +
+  theme_minimal() +
+  facet_wrap(~ DAYOFWEEK, nrow = 1, scales = "free_x") +
+  scale_x_discrete(labels = c("3 - DARK - LIGHTED ROADWAY" = "3", "4 - DARK – ROADWAY NOT LIGHTED" = "4", "5 - DARK – UNKNOWN ROADWAY LIGHTING" = "5"))
+```
+
