@@ -11,7 +11,7 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(ggmap)
-ggmap::register_google(key = "AIzaSyB2dXu4azkdzKjFg8Tskk5NFPurFc2__r0")
+ggmap::register_google(key = "private")
 ```
 
 ## Dataset {.tabset}
